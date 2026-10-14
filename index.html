@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Holding-Trainer</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Holding">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="theme-color" content="#101417">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#e7ebee; --surface:#ffffff; --ink:#15202b; --muted:#5b6873; --line:#ccd4da;
+  --c-direct:#1d8556; --c-teardrop:#b86e00; --c-parallel:#2a67c9;
+  --ok:#1d8556; --bad:#c0392b; --accent:#15202b; --accent-ink:#ffffff;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101417; --surface:#1a2025; --ink:#e7ecf0; --muted:#93a0aa; --line:#2d363d;
+    --c-direct:#3fcf8e; --c-teardrop:#f0b24a; --c-parallel:#6fa8ff;
+    --ok:#3fcf8e; --bad:#ff7b6b; --accent:#e7ecf0; --accent-ink:#101417;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101417; --surface:#1a2025; --ink:#e7ecf0; --muted:#93a0aa; --line:#2d363d;
+  --c-direct:#3fcf8e; --c-teardrop:#f0b24a; --c-parallel:#6fa8ff;
+  --ok:#3fcf8e; --bad:#ff7b6b; --accent:#e7ecf0; --accent-ink:#101417;
+  color-scheme:dark;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);}
+*,*::before,*::after{box-sizing:inherit;}
+[hidden]{display:none !important;}
+body{
+  margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:ui-sans-serif,-apple-system,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%;
+  font-variant-numeric:tabular-nums;
+}
+.app{max-width:520px;margin:0 auto;padding:14px 14px 40px;}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+h1{font-size:21px;font-weight:700;letter-spacing:-.01em;margin:0;}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px;}
+.tab{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:14px;font-weight:600;
+  padding:7px 12px;border-radius:9px;cursor:pointer;}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);}
+button:focus-visible,input:focus-visible{outline:3px solid var(--c-parallel);outline-offset:2px;}
+
+/* Instrument */
+.panel{background:#0c0e10;border-radius:22px;padding:14px 12px 12px;color:#e9ecee;}
+#hsi{display:block;width:100%;max-width:340px;margin:0 auto;}
+#card,#crs{transform-origin:150px 150px;transform-box:view-box;transition:transform .9s cubic-bezier(.3,.7,.2,1);}
+#cdi{transition:transform .9s cubic-bezier(.3,.7,.2,1);}
+.notrans,.notrans *{transition:none !important;}
+.tick{stroke:#cfd5d9;stroke-width:1.4;}
+.tick.major{stroke-width:2.4;stroke:#fff;}
+.lbl{fill:#e9ecee;font-size:16px;font-weight:600;text-anchor:middle;}
+.lbl.card-n{font-size:20px;font-weight:800;fill:#fff;}
+.cp{fill:#ffb000;}
+.cps{stroke:#ffb000;stroke-width:6;}
+.dot{fill:none;stroke:#e9ecee;stroke-width:2;}
+.tf{fill:#fff;}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;text-align:center;}
+.readout div{border-top:1px solid #272c31;padding-top:7px;}
+.readout small{display:block;font-size:12px;color:#8e99a3;}
+.readout b{font-size:19px;font-weight:650;}
+.readout .crs-v{color:#ffb000;}
+
+/* Controls */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;}
+.scenario{font-size:17px;margin:0 0 12px;white-space:pre-line;}
+.choices{display:grid;gap:8px;}
+.choice{appearance:none;display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);
+  color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:14px;font:inherit;font-size:17px;font-weight:600;cursor:pointer;}
+.choice .sw{width:6px;align-self:stretch;border-radius:3px;}
+.choice .sw.direct{background:var(--c-direct);} .choice .sw.teardrop{background:var(--c-teardrop);} .choice .sw.parallel{background:var(--c-parallel);}
+.choice:active{transform:scale(.99);}
+.choice.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--surface));}
+.choice.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface));}
+.choice[disabled]{cursor:default;}
+.feedback{margin:12px 0 0;font-weight:650;font-size:17px;}
+.feedback.ok{color:var(--ok);} .feedback.bad{color:var(--bad);}
+.primary{appearance:none;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:650;font-size:16px;
+  padding:13px 18px;border-radius:13px;width:100%;margin-top:12px;cursor:pointer;}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;color:var(--muted);font-size:14px;flex-wrap:wrap;}
+.meta label{display:flex;align-items:center;gap:8px;}
+.linkbtn{appearance:none;background:none;border:0;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:4px;}
+.field{margin-bottom:16px;}
+.field>label{display:block;font-weight:650;margin-bottom:6px;}
+.inp{display:flex;gap:6px;align-items:center;}
+.inp input[type=number]{flex:1;min-width:0;font:inherit;font-size:20px;font-weight:650;text-align:center;padding:9px 4px;border-radius:11px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);}
+.step{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14px;font-weight:650;
+  border-radius:10px;padding:10px 0;width:44px;cursor:pointer;}
+input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.seg button{appearance:none;border:2px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-weight:650;border-radius:12px;padding:11px;cursor:pointer;}
+.seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--accent);color:var(--accent-ink);}
+
+/* Result */
+.rtitle{font-size:22px;font-weight:750;margin:0 0 2px;letter-spacing:-.01em;}
+.rtitle.direct{color:var(--c-direct);} .rtitle.teardrop{color:var(--c-teardrop);} .rtitle.parallel{color:var(--c-parallel);}
+.rsub{margin:0 0 10px;color:var(--muted);font-size:15px;}
+#mapBox svg{display:block;width:100%;height:auto;}
+.how{margin:12px 0 0;}
+.sect{list-style:none;margin:12px 0 0;padding:0;border-top:1px solid var(--line);}
+.sect li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);}
+.sect li.hit{color:var(--ink);font-weight:700;}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0;}
+
+/* Map */
+.wedge{fill-opacity:.12;}
+.wedge.direct{fill:var(--c-direct);} .wedge.teardrop{fill:var(--c-teardrop);} .wedge.parallel{fill:var(--c-parallel);}
+.wedge.hit{fill-opacity:.32;}
+.wl{font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:middle;}
+.wl.direct{fill:var(--c-direct);} .wl.teardrop{fill:var(--c-teardrop);} .wl.parallel{fill:var(--c-parallel);}
+.split{stroke:var(--muted);stroke-width:1.5;}
+.axis{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 4;}
+.pattern{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round;}
+.appr{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:6 5;}
+.entry{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;opacity:.92;}
+.entry.direct{stroke:var(--c-direct);} .entry.teardrop{stroke:var(--c-teardrop);} .entry.parallel{stroke:var(--c-parallel);}
+.mk{fill:var(--ink);}
+.fix{fill:var(--bg);stroke:var(--ink);stroke-width:2.5;}
+.ntxt{fill:var(--muted);font-size:12px;font-weight:700;text-anchor:middle;}
+
+@media (prefers-reduced-motion: reduce){
+  #card,#crs,#cdi{transition:none;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Holding-Trainer</h1>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabQuiz" aria-selected="true" data-tab="quiz">Quiz</button>
+      <button class="tab" role="tab" id="tabOwn" aria-selected="false" data-tab="own">Custom</button>
+    </div>
+  </header>
+
+  <section class="panel" aria-label="Instrument">
+    <svg id="hsi" viewBox="0 0 300 300" role="img" aria-label="Horizontal Situation Indicator">
+      <circle cx="150" cy="150" r="148" fill="#15181b" stroke="#2c3238" stroke-width="2"/>
+      <g id="card">
+        <circle cx="150" cy="150" r="132" fill="#0c0e10" stroke="#2c3238"/>
+        <g id="ticks"></g>
+        <g id="crs">
+          <polygon points="150,58 141,78 159,78" class="cp"/>
+          <line x1="150" y1="78" x2="150" y2="100" class="cps"/>
+          <line x1="150" y1="200" x2="150" y2="228" class="cps"/>
+          <circle class="dot" cx="120" cy="150" r="4"/><circle class="dot" cx="90" cy="150" r="4"/>
+          <circle class="dot" cx="180" cy="150" r="4"/><circle class="dot" cx="210" cy="150" r="4"/>
+          <polygon id="tf" class="tf" points="150,106 141,124 159,124"/>
+          <g id="cdi"><rect x="146.5" y="100" width="7" height="100" class="cp"/></g>
+        </g>
+      </g>
+      <polygon points="150,17 142,3 158,3" fill="#ffffff"/>
+      <path d="M150 126 L150 174 M128 152 L172 152 M141 170 L159 170" stroke="#f4f4f4" stroke-width="4" stroke-linecap="round" fill="none"/>
+    </svg>
+    <div class="readout">
+      <div><small>Course to fix</small><b id="rH">---°</b></div>
+      <div><small>Inbound</small><b class="crs-v" id="rIC">---°</b></div>
+      <div><small>Turns</small><b id="rS">Right</b></div>
+    </div>
+  </section>
+
+  <section id="quiz" class="card">
+    <p class="scenario" id="qText"></p>
+    <div class="choices" id="choices">
+      <button class="choice" data-e="direct"><span class="sw direct"></span>Direct Entry</button>
+      <button class="choice" data-e="teardrop"><span class="sw teardrop"></span>Teardrop Entry</button>
+      <button class="choice" data-e="parallel"><span class="sw parallel"></span>Parallel Entry</button>
+    </div>
+    <p class="feedback" id="feedback" hidden></p>
+    <button class="primary" id="next" hidden>Next</button>
+    <div class="meta">
+      <span id="score"></span>
+      <label><input type="checkbox" id="optLeft" checked> Include left turns</label>
+      <button class="linkbtn" id="resetScore">Reset score</button>
+    </div>
+  </section>
+
+  <section id="own" class="card" hidden>
+    <div class="field">
+      <label for="hNum">Course to fix</label>
+      <div class="inp">
+        <button class="step" data-t="H" data-d="-10" aria-label="10 degrees less">−10</button>
+        <button class="step" data-t="H" data-d="-1" aria-label="1 degree less">−1</button>
+        <input id="hNum" type="number" inputmode="numeric" min="1" max="360">
+        <button class="step" data-t="H" data-d="1" aria-label="1 degree more">+1</button>
+        <button class="step" data-t="H" data-d="10" aria-label="10 degrees more">+10</button>
+      </div>
+      <input id="hRange" type="range" min="1" max="360" aria-label="Course to fix">
+    </div>
+    <div class="field">
+      <label for="icNum">Inbound course</label>
+      <div class="inp">
+        <button class="step" data-t="IC" data-d="-10" aria-label="10 degrees less">−10</button>
+        <button class="step" data-t="IC" data-d="-1" aria-label="1 degree less">−1</button>
+        <input id="icNum" type="number" inputmode="numeric" min="1" max="360">
+        <button class="step" data-t="IC" data-d="1" aria-label="1 degree more">+1</button>
+        <button class="step" data-t="IC" data-d="10" aria-label="10 degrees more">+10</button>
+      </div>
+      <input id="icRange" type="range" min="1" max="360" aria-label="Inbound course">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Turn direction</label>
+      <div class="seg">
+        <button data-s="1" aria-pressed="true">Right turns</button>
+        <button data-s="-1" aria-pressed="false">Left turns</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="card" hidden>
+    <h2 class="rtitle" id="rTitle"></h2>
+    <p class="rsub" id="rSub"></p>
+    <div id="mapBox"></div>
+    <p class="how" id="how"></p>
+    <ul class="sect" id="sect"></ul>
+    <p class="note">The map is north-up. The shaded sectors show the direction you approach the fix from. Teardrop outbound is offset 30° towards the holding side.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const mod = (a,n) => ((a % n) + n) % n;
+  const rad = d => d * Math.PI / 180;
+  const u = h => [Math.sin(rad(h)), -Math.cos(rad(h))];
+  const hd = v => { let n = Math.round(mod(v,360)); if(n === 0) n = 360; return String(n).padStart(3,'0') + '°'; };
+  const normH = v => mod(Math.round(v) - 1, 360) + 1;
+  const NAMES = {direct:'Direct Entry', teardrop:'Teardrop Entry', parallel:'Parallel Entry'};
+  const SHORT = {direct:'Direct', teardrop:'Teardrop', parallel:'Parallel'};
+
+  /* ---------- Logic ---------- */
+  function classify(H, IC, s){
+    const r = mod(s * (H - IC), 360);
+    if (r >= 290 || r < 110) return 'direct';
+    return r < 180 ? 'teardrop' : 'parallel';
+  }
+
+  /* ---------- HSI ---------- */
+  (function buildCard(){
+    let g = '';
+    for (let a = 0; a < 360; a += 5){
+      const len = a % 30 === 0 ? 13 : (a % 10 === 0 ? 9 : 5);
+      g += `<line class="tick${a % 30 === 0 ? ' major' : ''}" x1="150" y1="18" x2="150" y2="${18 + len}" transform="rotate(${a} 150 150)"/>`;
+    }
+    for (let a = 0; a < 360; a += 30){
+      const card = a % 90 === 0;
+      const t = card ? 'NESW'[a / 90] : String(a / 10);
+      g += `<text class="lbl${card ? ' card-n' : ''}" x="150" y="${card ? 50 : 49}" transform="rotate(${a} 150 150)">${t}</text>`;
+    }
+    $('ticks').innerHTML = g;
+  })();
+
+  let cardRot = 0, crsRot = 0, firstHSI = true;
+  const nearest = (cur, target) => cur + mod(target - cur + 180, 360) - 180;
+
+  function setHSI(H, IC, s){
+    const hsi = $('hsi');
+    if (firstHSI){ hsi.classList.add('notrans'); }
+    cardRot = nearest(cardRot, -H);
+    crsRot = nearest(crsRot, IC);
+    $('card').style.transform = `rotate(${cardRot}deg)`;
+    $('crs').style.transform = `rotate(${crsRot}deg)`;
+
+    // Deviation: aircraft flies straight to the station (bearing to station = course)
+    const a = mod(H - IC, 360) - 180;         // position relative to the course line
+    const abs = Math.abs(a);
+    const e = abs <= 90 ? abs : 180 - abs;    // angle off the course line
+    const side = Math.sign(Math.sin(rad(a))); // >0: aircraft right of the line
+    const dots = Math.min(e / 5, 2.1);        // 5° per dot, 10° full scale
+    $('cdi').style.transform = `translateX(${(-side * dots * 30).toFixed(1)}px)`;
+
+    const tf = $('tf');
+    if (Math.abs(abs - 90) < 6){ tf.setAttribute('visibility','hidden'); }
+    else {
+      tf.setAttribute('visibility','visible');
+      tf.setAttribute('points', abs > 90 ? '150,106 141,124 159,124' : '150,194 141,176 159,176');
+    }
+    $('rH').textContent = hd(H);
+    $('rIC').textContent = hd(IC);
+    $('rS').textContent = s > 0 ? 'Right' : 'Left';
+    if (firstHSI){
+      void hsi.getBoundingClientRect();
+      requestAnimationFrame(() => hsi.classList.remove('notrans'));
+      firstHSI = false;
+    }
+  }
+
+  /* ---------- Map ---------- */
+  const pt = (x, y) => x.toFixed(1) + ' ' + y.toFixed(1);
+  const add = (p, v, k) => [p[0] + v[0] * k, p[1] + v[1] * k];
+
+  function renderMap(H, IC, s, entry){
+    const F = [200, 200], L = 78, D = 44, R = 22, RW = 150;
+    const sw = s > 0 ? 1 : 0, swo = 1 - sw;
+    const uIC = u(IC), uo = u(IC + 180), sv = u(IC + 90 * s);
+    const P0 = add(F, uIC, -L), Q1 = add(F, sv, D), Q2 = add(Q1, uo, L);
+    const pattern = `M${pt(...P0)} L${pt(...F)} A${R} ${R} 0 0 ${sw} ${pt(...Q1)} L${pt(...Q2)} A${R} ${R} 0 0 ${sw} ${pt(...P0)}`;
+
+    const wedge = (pa, pb, cls) => {
+      const p1 = add(F, u(IC + s * pa), RW), p2 = add(F, u(IC + s * pb), RW);
+      return `<path class="wedge ${cls}${entry === cls ? ' hit' : ''}" d="M${pt(...F)} L${pt(...p1)} A${RW} ${RW} 0 0 ${sw} ${pt(...p2)} Z"/>`;
+    };
+    const label = (mid, cls) => {
+      const p = add(F, u(IC + s * mid), 108);
+      return `<text class="wl ${cls}" x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}">${SHORT[cls]}</text>`;
+    };
+
+    let svg = `<svg viewBox="0 0 400 400" role="img" aria-label="Holding pattern with entry sectors and entry path">`;
+    svg += wedge(110, 290, 'direct') + wedge(290, 360, 'teardrop') + wedge(0, 110, 'parallel');
+    svg += `<line class="split" x1="${add(F,u(IC+110*s),RW)[0].toFixed(1)}" y1="${add(F,u(IC+110*s),RW)[1].toFixed(1)}" x2="${add(F,u(IC+290*s),RW)[0].toFixed(1)}" y2="${add(F,u(IC+290*s),RW)[1].toFixed(1)}"/>`;
+    svg += `<line class="axis" x1="200" y1="200" x2="${add(F,uIC,RW)[0].toFixed(1)}" y2="${add(F,uIC,RW)[1].toFixed(1)}"/>`;
+    svg += label(200, 'direct') + label(325, 'teardrop') + label(55, 'parallel');
+
+    // Approach
+    const S = add(F, u(H), -170);
+    svg += `<line class="appr" x1="${S[0].toFixed(1)}" y1="${S[1].toFixed(1)}" x2="200" y2="200"/>`;
+
+    // Holding pattern
+    svg += `<path class="pattern" d="${pattern}"/>`;
+    const C = add(F, uIC, -40);
+    svg += `<path class="mk" transform="translate(${C[0].toFixed(1)} ${C[1].toFixed(1)}) rotate(${IC})" d="M0 -7 L6 5 L-6 5Z"/>`;
+
+    // Entry procedure
+    let d;
+    if (entry === 'direct'){
+      d = pattern;
+    } else if (entry === 'parallel'){
+      const A = add(F, uo, L), B = add(A, sv, D);
+      d = `M${pt(...F)} L${pt(...A)} A${R} ${R} 0 0 ${swo} ${pt(...B)} L${pt(...F)}`;
+    } else {
+      const ut = u(IC + 180 - 30 * s);
+      const A = add(F, ut, L), c1 = add(A, ut, 50), c2 = add(F, uIC, -70);
+      d = `M${pt(...F)} L${pt(...A)} C${pt(...c1)} ${pt(...c2)} ${pt(...F)}`;
+    }
+    svg += `<path class="entry ${entry}" d="${d}"/>`;
+
+    // Aircraft at start, fix, north
+    svg += `<path class="mk" transform="translate(${S[0].toFixed(1)} ${S[1].toFixed(1)}) rotate(${H})" d="M0 -12 L8 10 L0 6 L-8 10Z"/>`;
+    svg += `<circle class="fix" cx="200" cy="200" r="6"/>`;
+    svg += `<g transform="translate(372 30)"><path class="mk" d="M0 -16 L5 -2 L0 -6 L-5 -2Z"/><text class="ntxt" y="14">N</text></g>`;
+    return svg + `</svg>`;
+  }
+
+  /* ---------- Result ---------- */
+  function showResult(H, IC, s, entry, sub){
+    const out = IC + 180;
+    const dirW = s > 0 ? 'right' : 'left', oppW = s > 0 ? 'left' : 'right';
+    const t = $('rTitle'); t.textContent = NAMES[entry]; t.className = 'rtitle ' + entry;
+    $('rSub').textContent = sub;
+    $('mapBox').innerHTML = renderMap(H, IC, s, entry);
+    const how = {
+      direct: `At the fix, turn ${dirW} onto the outbound heading ${hd(out)} and fly outbound for 1 minute.`,
+      teardrop: `At the fix, turn onto ${hd(out - 30 * s)}, fly 1 minute, then turn ${dirW} and intercept the inbound course ${hd(IC)}.`,
+      parallel: `At the fix, turn onto the outbound heading ${hd(out)}, fly 1 minute parallel to the inbound course, then turn ${oppW} and intercept the inbound course ${hd(IC)} from the holding side.`
+    };
+    $('how').textContent = how[entry];
+    const rng = (a, b) => s > 0 ? `${hd(IC + a)} – ${hd(IC + b)}` : `${hd(IC - b)} – ${hd(IC - a)}`;
+    const rows = [['direct', rng(290, 470)], ['teardrop', rng(110, 180)], ['parallel', rng(180, 290)]];
+    $('sect').innerHTML = rows.map(r => `<li class="${r[0] === entry ? 'hit' : ''}"><span>${SHORT[r[0]]}</span><span>Course to fix ${r[1]}</span></li>`).join('');
+    $('result').hidden = false;
+  }
+
+  /* ---------- Quiz ---------- */
+  let stats = {ok:0, n:0, streak:0};
+  try { const sv = JSON.parse(localStorage.getItem('holding-stats') || 'null'); if (sv && typeof sv.n === 'number') stats = sv; } catch(e){}
+  function saveStats(){ try { localStorage.setItem('holding-stats', JSON.stringify(stats)); } catch(e){} }
+  function drawScore(){
+    $('score').textContent = stats.n ? `${stats.ok} of ${stats.n} correct · streak ${stats.streak}` : 'No answers yet';
+  }
+
+  let q = null;
+  function newQuestion(){
+    const s = ($('optLeft').checked && Math.random() < 0.4) ? -1 : 1;
+    const IC = 10 * (1 + Math.floor(Math.random() * 36));
+    let H, tries = 0;
+    do {
+      H = 1 + Math.floor(Math.random() * 360);
+      const r = mod(s * (H - IC), 360);
+      var near = [110, 180, 290].some(b => Math.abs(r - b) < 5);
+      tries++;
+    } while (near && tries < 200);
+    q = {H, IC, s, entry: classify(H, IC, s), answered: false, pick: null};
+    renderQuiz();
+  }
+  function renderQuiz(){
+    if (!q) return;
+    setHSI(q.H, q.IC, q.s);
+    $('qText').textContent = `Course to fix: ${hd(q.H)}\nHolding instructions: inbound ${hd(q.IC)}, ${q.s > 0 ? 'right' : 'left'} turns`;
+    document.querySelectorAll('.choice').forEach(b => {
+      b.disabled = q.answered;
+      b.classList.toggle('right', q.answered && b.dataset.e === q.entry);
+      b.classList.toggle('wrong', q.answered && b.dataset.e === q.pick && q.pick !== q.entry);
+    });
+    const fb = $('feedback');
+    fb.hidden = !q.answered;
+    if (q.answered){
+      const ok = q.pick === q.entry;
+      fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
+      fb.textContent = ok ? `Correct: ${NAMES[q.entry]}.` : `Not quite. The correct entry is ${NAMES[q.entry]} (you chose ${NAMES[q.pick]}).`;
+      showResult(q.H, q.IC, q.s, q.entry, `Course to fix ${hd(q.H)} · Inbound ${hd(q.IC)} · ${q.s > 0 ? 'Right' : 'Left'} turns`);
+    } else {
+      $('result').hidden = true;
+    }
+    $('next').hidden = !q.answered;
+    drawScore();
+  }
+  document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
+    if (!q || q.answered) return;
+    q.answered = true; q.pick = b.dataset.e;
+    stats.n++;
+    if (q.pick === q.entry){ stats.ok++; stats.streak++; } else { stats.streak = 0; }
+    saveStats();
+    renderQuiz();
+    $('result').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }));
+  $('next').addEventListener('click', () => { newQuestion(); window.scrollTo({top:0, behavior:'smooth'}); });
+  $('resetScore').addEventListener('click', () => { stats = {ok:0, n:0, streak:0}; saveStats(); drawScore(); });
+
+  /* ---------- Custom situation ---------- */
+  const own = {H:270, IC:360, s:1};
+  function syncInputs(skipField){
+    if (skipField !== 'H') $('hNum').value = own.H;
+    if (skipField !== 'IC') $('icNum').value = own.IC;
+    $('hRange').value = own.H; $('icRange').value = own.IC;
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.s) === own.s)));
+  }
+  function updateOwn(){
+    setHSI(own.H, own.IC, own.s);
+    const entry = classify(own.H, own.IC, own.s);
+    showResult(own.H, own.IC, own.s, entry, `Course to fix ${hd(own.H)} · Inbound ${hd(own.IC)} · ${own.s > 0 ? 'Right' : 'Left'} turns`);
+  }
+  function bindField(numId, rangeId, key){
+    $(numId).addEventListener('input', e => {
+      const v = parseInt(e.target.value, 10);
+      if (isNaN(v)) return;
+      own[key] = normH(v); syncInputs(key === 'H' ? 'H' : 'IC'); updateOwn();
+    });
+    $(numId).addEventListener('change', () => syncInputs());
+    $(rangeId).addEventListener('input', e => { own[key] = normH(parseInt(e.target.value, 10)); syncInputs(); updateOwn(); });
+  }
+  bindField('hNum', 'hRange', 'H');
+  bindField('icNum', 'icRange', 'IC');
+  document.querySelectorAll('.step').forEach(b => b.addEventListener('click', () => {
+    own[b.dataset.t] = normH(own[b.dataset.t] + Number(b.dataset.d));
+    syncInputs(); updateOwn();
+  }));
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    own.s = Number(b.dataset.s); syncInputs(); updateOwn();
+  }));
+
+  /* ---------- Tabs ---------- */
+  function setTab(name){
+    const isQuiz = name === 'quiz';
+    $('tabQuiz').setAttribute('aria-selected', String(isQuiz));
+    $('tabOwn').setAttribute('aria-selected', String(!isQuiz));
+    $('quiz').hidden = !isQuiz;
+    $('own').hidden = isQuiz;
+    if (isQuiz) renderQuiz(); else { syncInputs(); updateOwn(); }
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+
+  newQuestion();
+
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
