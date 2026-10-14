@@ -5,7 +5,7 @@ A small web app for practising IFR holding entries. It runs entirely in the brow
 ## Features
 
 - **Quiz:** You get the course to the fix and the holding instructions (inbound course, turn direction) and pick the entry: direct, teardrop or parallel. After answering, the app shows a map with the sectors and the entry path, plus a short description of the procedure.
-- **Check for entry heading (optional):** Tick the checkbox below the quiz to also set a heading bug to the first heading you would fly after crossing the fix. Select the entry, set the bug (±5° tolerance) and tap **Check answer**. Both parts count towards the score, and the feedback tells you which one was wrong.
+- **Check for entry heading (optional):** Tick the checkbox below the quiz to also set a heading bug to the first heading you would fly after crossing the fix. Set the bug (±5° tolerance), then tap the entry button, which shows your current heading, for example “Direct Entry with heading 010°”. Tapping it confirms your answer. Both parts count towards the score, and the feedback tells you which one was wrong.
 - **Custom:** Set the course to the fix, the inbound course and the turn direction (right or left) yourself. Entry, instrument and map update live. The required entry heading after the fix is shown as a number, as a heading bug on the instrument and as an arrow on the map.
 - **Instrument:** A heading card with an integrated HSI. The course pointer is set to the inbound course, the deviation bar moves according to your position relative to the inbound line (5° per dot, 10° full scale), plus a TO/FROM indicator. Fixed white marks at ±90° from the nose make it easier to read relative courses.
 - **Score:** Correct answers and streak are stored locally in the browser.
@@ -48,6 +48,34 @@ GitHub Pages serves the site over HTTPS, which is required for the service worke
 ## Install and use offline
 
 Open the app URL once while online, then install it:
+
+### iPhone / iPad (Safari)
+
+1. Open the URL in **Safari** (other iOS browsers may not offer installation).
+2. Tap **Share**, then **Add to Home Screen**, then **Add**.
+3. Start it from the home screen. It opens full screen and works without a connection.
+
+### Android (Chrome)
+
+1. Open the URL in **Chrome**.
+2. Tap the menu (⋮) and choose **Install app** (or **Add to Home screen**).
+3. Start it from the home screen or the app drawer. It opens in its own window and works without a connection.
+
+Other Android browsers (Samsung Internet, Edge, Firefox) offer a similar **Add to Home screen** / **Install** entry in their menus.
+
+### Notes
+
+- Installed web apps appear as normal app icons. Home screen widgets are not possible for web apps on either platform.
+- On iOS, data stored by a home-screen web app is kept separately from Safari, so the score starts fresh after installing.
+- The first load must happen online so the service worker can cache the files.
+
+## Releasing updates
+
+After changing `index.html`, increase the version in `sw.js` (for example `holding-trainer-v4` to `holding-trainer-v5`). Otherwise devices keep serving the cached old version. You may need to open the app twice until the new version is active.
+
+## Disclaimer
+
+This app is for training and illustration only. It does not replace official documents or proper training and is not intended for use in flight. The applicable procedures and regulations always take precedence.
 
 ### iPhone / iPad (Safari)
 
