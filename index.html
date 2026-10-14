@@ -18,21 +18,21 @@
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
   --bg:#e7ebee; --surface:#ffffff; --ink:#15202b; --muted:#5b6873; --line:#ccd4da;
-  --c-direct:#1d8556; --c-teardrop:#b86e00; --c-parallel:#2a67c9;
+  --c-direct:#1d8556; --c-teardrop:#b86e00; --c-parallel:#2a67c9; --c-hdg:#0b7ea8;
   --ok:#1d8556; --bad:#c0392b; --accent:#15202b; --accent-ink:#ffffff;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#101417; --surface:#1a2025; --ink:#e7ecf0; --muted:#93a0aa; --line:#2d363d;
-    --c-direct:#3fcf8e; --c-teardrop:#f0b24a; --c-parallel:#6fa8ff;
+    --c-direct:#3fcf8e; --c-teardrop:#f0b24a; --c-parallel:#6fa8ff; --c-hdg:#35c8f5;
     --ok:#3fcf8e; --bad:#ff7b6b; --accent:#e7ecf0; --accent-ink:#101417;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#101417; --surface:#1a2025; --ink:#e7ecf0; --muted:#93a0aa; --line:#2d363d;
-  --c-direct:#3fcf8e; --c-teardrop:#f0b24a; --c-parallel:#6fa8ff;
+  --c-direct:#3fcf8e; --c-teardrop:#f0b24a; --c-parallel:#6fa8ff; --c-hdg:#35c8f5;
   --ok:#3fcf8e; --bad:#ff7b6b; --accent:#e7ecf0; --accent-ink:#101417;
   color-scheme:dark;
 }
@@ -57,7 +57,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--c-parallel);out
 /* Instrument */
 .panel{background:#0c0e10;border-radius:22px;padding:14px 12px 12px;color:#e9ecee;}
 #hsi{display:block;width:100%;max-width:340px;margin:0 auto;}
-#card,#crs{transform-origin:150px 150px;transform-box:view-box;transition:transform .9s cubic-bezier(.3,.7,.2,1);}
+#card,#crs,#bug{transform-origin:150px 150px;transform-box:view-box;transition:transform .9s cubic-bezier(.3,.7,.2,1);}
 #cdi{transition:transform .9s cubic-bezier(.3,.7,.2,1);}
 .notrans,.notrans *{transition:none !important;}
 .tick{stroke:#cfd5d9;stroke-width:1.4;}
@@ -68,11 +68,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--c-parallel);out
 .cps{stroke:#ffb000;stroke-width:6;}
 .dot{fill:none;stroke:#e9ecee;stroke-width:2;}
 .tf{fill:#fff;}
-.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;text-align:center;}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px;margin-top:8px;text-align:center;}
 .readout div{border-top:1px solid #272c31;padding-top:7px;}
 .readout small{display:block;font-size:12px;color:#8e99a3;}
 .readout b{font-size:19px;font-weight:650;}
 .readout .crs-v{color:#ffb000;}
+.readout .bug-v{color:#35c8f5;}
+.bugshape{fill:#35c8f5;stroke:#0c0e10;stroke-width:1;}
+.m90{fill:#ffffff;}
 
 /* Controls */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;}
@@ -86,7 +89,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--c-parallel);out
 .choice.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--surface));}
 .choice.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface));}
 .choice[disabled]{cursor:default;}
-.feedback{margin:12px 0 0;font-weight:650;font-size:17px;}
+.choice.sel{border-color:var(--ink);}
+.feedback{margin:12px 0 0;font-weight:650;font-size:17px;white-space:pre-line;}
 .feedback.ok{color:var(--ok);} .feedback.bad{color:var(--bad);}
 .primary{appearance:none;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:650;font-size:16px;
   padding:13px 18px;border-radius:13px;width:100%;margin-top:12px;cursor:pointer;}
@@ -94,6 +98,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--c-parallel);out
 .meta label{display:flex;align-items:center;gap:8px;}
 .linkbtn{appearance:none;background:none;border:0;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:4px;}
 .field{margin-bottom:16px;}
+#bugField{margin:14px 0 0;}
+.hint{font-weight:400;color:var(--muted);font-size:13px;}
+.opts{display:grid;gap:8px;margin-top:14px;color:var(--muted);font-size:14px;}
+.opts label{display:flex;align-items:center;gap:8px;}
+.eh{margin:0 0 10px;font-size:19px;font-weight:750;color:var(--c-hdg);}
 .field>label{display:block;font-weight:650;margin-bottom:6px;}
 .inp{display:flex;gap:6px;align-items:center;}
 .inp input[type=number]{flex:1;min-width:0;font:inherit;font-size:20px;font-weight:650;text-align:center;padding:9px 4px;border-radius:11px;
@@ -131,9 +140,11 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
 .mk{fill:var(--ink);}
 .fix{fill:var(--bg);stroke:var(--ink);stroke-width:2.5;}
 .ntxt{fill:var(--muted);font-size:12px;font-weight:700;text-anchor:middle;}
+.hdgmk{fill:var(--c-hdg);stroke:var(--surface);stroke-width:1.5;stroke-linejoin:round;}
+.hdgtxt{fill:var(--c-hdg);font-size:15px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round;}
 
 @media (prefers-reduced-motion: reduce){
-  #card,#crs,#cdi{transition:none;}
+  #card,#crs,#cdi,#bug{transition:none;}
 }
 </style>
 </head>
@@ -153,6 +164,7 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
       <g id="card">
         <circle cx="150" cy="150" r="132" fill="#0c0e10" stroke="#2c3238"/>
         <g id="ticks"></g>
+        <g id="bug" style="display:none"><polygon class="bugshape" points="137,18 163,18 163,26 155,26 150,33 145,26 137,26"/></g>
         <g id="crs">
           <polygon points="150,58 141,78 159,78" class="cp"/>
           <line x1="150" y1="78" x2="150" y2="100" class="cps"/>
@@ -164,12 +176,15 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
         </g>
       </g>
       <polygon points="150,17 142,3 158,3" fill="#ffffff"/>
+      <polygon class="m90" points="283,150 297,143 297,157"/>
+      <polygon class="m90" points="17,150 3,143 3,157"/>
       <path d="M150 126 L150 174 M128 152 L172 152 M141 170 L159 170" stroke="#f4f4f4" stroke-width="4" stroke-linecap="round" fill="none"/>
     </svg>
     <div class="readout">
       <div><small>Course to fix</small><b id="rH">---°</b></div>
       <div><small>Inbound</small><b class="crs-v" id="rIC">---°</b></div>
       <div><small>Turns</small><b id="rS">Right</b></div>
+      <div id="rBugCell" hidden><small id="rBugLbl">Heading bug</small><b class="bug-v" id="rBug">---°</b></div>
     </div>
   </section>
 
@@ -180,11 +195,26 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
       <button class="choice" data-e="teardrop"><span class="sw teardrop"></span>Teardrop Entry</button>
       <button class="choice" data-e="parallel"><span class="sw parallel"></span>Parallel Entry</button>
     </div>
+    <div class="field" id="bugField" hidden>
+      <label for="bugNum">Heading bug <span class="hint">first heading after the fix (±5°)</span></label>
+      <div class="inp">
+        <button class="step bstep" data-d="-10" aria-label="10 degrees less">−10</button>
+        <button class="step bstep" data-d="-1" aria-label="1 degree less">−1</button>
+        <input id="bugNum" type="number" inputmode="numeric" min="1" max="360">
+        <button class="step bstep" data-d="1" aria-label="1 degree more">+1</button>
+        <button class="step bstep" data-d="10" aria-label="10 degrees more">+10</button>
+      </div>
+      <input id="bugRange" type="range" min="1" max="360" aria-label="Heading bug">
+    </div>
+    <button class="primary" id="check" hidden>Check answer</button>
     <p class="feedback" id="feedback" hidden></p>
     <button class="primary" id="next" hidden>Next</button>
+    <div class="opts">
+      <label><input type="checkbox" id="optLeft" checked> Include left turns</label>
+      <label><input type="checkbox" id="optHdg"> Check for entry heading</label>
+    </div>
     <div class="meta">
       <span id="score"></span>
-      <label><input type="checkbox" id="optLeft" checked> Include left turns</label>
       <button class="linkbtn" id="resetScore">Reset score</button>
     </div>
   </section>
@@ -224,6 +254,7 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   <section id="result" class="card" hidden>
     <h2 class="rtitle" id="rTitle"></h2>
     <p class="rsub" id="rSub"></p>
+    <p class="eh" id="rEh" hidden></p>
     <div id="mapBox"></div>
     <p class="how" id="how"></p>
     <ul class="sect" id="sect"></ul>
@@ -248,6 +279,8 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     if (r >= 290 || r < 110) return 'direct';
     return r < 180 ? 'teardrop' : 'parallel';
   }
+  // First heading to fly after crossing the fix
+  const entryHdg = (entry, IC, s) => normH(IC + 180 - (entry === 'teardrop' ? 30 * s : 0));
 
   /* ---------- HSI ---------- */
   (function buildCard(){
@@ -264,12 +297,13 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     $('ticks').innerHTML = g;
   })();
 
-  let cardRot = 0, crsRot = 0, firstHSI = true;
+  let cardRot = 0, crsRot = 0, bugRot = 0, bugShown = false, firstHSI = true;
   const nearest = (cur, target) => cur + mod(target - cur + 180, 360) - 180;
 
-  function setHSI(H, IC, s){
+  function setHSI(H, IC, s, bug, bugLabel){
     const hsi = $('hsi');
-    if (firstHSI){ hsi.classList.add('notrans'); }
+    const snap = firstHSI || (bug != null && !bugShown);
+    if (snap){ hsi.classList.add('notrans'); }
     cardRot = nearest(cardRot, -H);
     crsRot = nearest(crsRot, IC);
     $('card').style.transform = `rotate(${cardRot}deg)`;
@@ -292,7 +326,18 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     $('rH').textContent = hd(H);
     $('rIC').textContent = hd(IC);
     $('rS').textContent = s > 0 ? 'Right' : 'Left';
-    if (firstHSI){
+    if (bug == null){
+      $('bug').style.display = 'none'; $('rBugCell').hidden = true; bugShown = false;
+    } else {
+      bugRot = bugShown ? nearest(bugRot, bug) : bug;
+      $('bug').style.display = '';
+      $('bug').style.transform = `rotate(${bugRot}deg)`;
+      $('rBugLbl').textContent = bugLabel || 'Heading bug';
+      $('rBug').textContent = hd(bug);
+      $('rBugCell').hidden = false;
+      bugShown = true;
+    }
+    if (snap){
       void hsi.getBoundingClientRect();
       requestAnimationFrame(() => hsi.classList.remove('notrans'));
       firstHSI = false;
@@ -303,7 +348,7 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   const pt = (x, y) => x.toFixed(1) + ' ' + y.toFixed(1);
   const add = (p, v, k) => [p[0] + v[0] * k, p[1] + v[1] * k];
 
-  function renderMap(H, IC, s, entry){
+  function renderMap(H, IC, s, entry, showHdg){
     const F = [200, 200], L = 78, D = 44, R = 22, RW = 150;
     const sw = s > 0 ? 1 : 0, swo = 1 - sw;
     const uIC = u(IC), uo = u(IC + 180), sv = u(IC + 90 * s);
@@ -348,6 +393,15 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     }
     svg += `<path class="entry ${entry}" d="${d}"/>`;
 
+    // Entry heading marker (first heading after the fix)
+    if (showHdg){
+      const hdg = entryHdg(entry, IC, s);
+      let mid;
+      if (entry === 'direct') mid = [(Q1[0] + Q2[0]) / 2, (Q1[1] + Q2[1]) / 2];
+      else mid = add(F, entry === 'teardrop' ? u(IC + 180 - 30 * s) : uo, L / 2);
+      svg += `<path class="hdgmk" transform="translate(${mid[0].toFixed(1)} ${mid[1].toFixed(1)}) rotate(${hdg})" d="M0 -11 L9 8 L0 4 L-9 8Z"/>`;
+      svg += `<path class="hdgmk" transform="translate(20 380)" d="M0 -9 L7 6 L0 3 L-7 6Z"/><text class="hdgtxt" x="34" y="385">Entry heading ${hd(hdg)}</text>`;
+    }
     // Aircraft at start, fix, north
     svg += `<path class="mk" transform="translate(${S[0].toFixed(1)} ${S[1].toFixed(1)}) rotate(${H})" d="M0 -12 L8 10 L0 6 L-8 10Z"/>`;
     svg += `<circle class="fix" cx="200" cy="200" r="6"/>`;
@@ -356,12 +410,15 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   }
 
   /* ---------- Result ---------- */
-  function showResult(H, IC, s, entry, sub){
+  function showResult(H, IC, s, entry, sub, showHdg){
     const out = IC + 180;
     const dirW = s > 0 ? 'right' : 'left', oppW = s > 0 ? 'left' : 'right';
     const t = $('rTitle'); t.textContent = NAMES[entry]; t.className = 'rtitle ' + entry;
     $('rSub').textContent = sub;
-    $('mapBox').innerHTML = renderMap(H, IC, s, entry);
+    const eh = $('rEh');
+    eh.hidden = !showHdg;
+    if (showHdg) eh.textContent = `Entry heading: ${hd(entryHdg(entry, IC, s))}`;
+    $('mapBox').innerHTML = renderMap(H, IC, s, entry, showHdg);
     const how = {
       direct: `At the fix, turn ${dirW} onto the outbound heading ${hd(out)} and fly outbound for 1 minute.`,
       teardrop: `At the fix, turn onto ${hd(out - 30 * s)}, fly 1 minute, then turn ${dirW} and intercept the inbound course ${hd(IC)}.`,
@@ -386,47 +443,88 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   function newQuestion(){
     const s = ($('optLeft').checked && Math.random() < 0.4) ? -1 : 1;
     const IC = 10 * (1 + Math.floor(Math.random() * 36));
-    let H, tries = 0;
+    let H, tries = 0, near;
     do {
       H = 1 + Math.floor(Math.random() * 360);
       const r = mod(s * (H - IC), 360);
-      var near = [110, 180, 290].some(b => Math.abs(r - b) < 5);
+      near = [110, 180, 290].some(b => Math.abs(r - b) < 5);
       tries++;
     } while (near && tries < 200);
-    q = {H, IC, s, entry: classify(H, IC, s), answered: false, pick: null};
+    const entry = classify(H, IC, s);
+    q = {H, IC, s, entry, checkHdg: $('optHdg').checked, hdgReq: entryHdg(entry, IC, s), bug: H, answered: false, pick: null, ok: false, feedback: ''};
+    syncBug();
     renderQuiz();
+  }
+  function syncBug(skip){
+    if (!q) return;
+    if (skip !== 'num') $('bugNum').value = q.bug;
+    $('bugRange').value = q.bug;
   }
   function renderQuiz(){
     if (!q) return;
-    setHSI(q.H, q.IC, q.s);
+    const bugShow = q.checkHdg ? (q.answered ? q.hdgReq : q.bug) : null;
+    setHSI(q.H, q.IC, q.s, bugShow, q.answered ? 'Entry heading' : 'Heading bug');
     $('qText').textContent = `Course to fix: ${hd(q.H)}\nHolding instructions: inbound ${hd(q.IC)}, ${q.s > 0 ? 'right' : 'left'} turns`;
     document.querySelectorAll('.choice').forEach(b => {
       b.disabled = q.answered;
+      b.classList.toggle('sel', q.checkHdg && !q.answered && b.dataset.e === q.pick);
       b.classList.toggle('right', q.answered && b.dataset.e === q.entry);
       b.classList.toggle('wrong', q.answered && b.dataset.e === q.pick && q.pick !== q.entry);
     });
+    $('bugField').hidden = !q.checkHdg;
+    $('bugNum').disabled = q.answered;
+    $('bugRange').disabled = q.answered;
+    document.querySelectorAll('.bstep').forEach(b => b.disabled = q.answered);
+    $('check').hidden = !(q.checkHdg && !q.answered);
+    $('check').disabled = !q.pick;
     const fb = $('feedback');
     fb.hidden = !q.answered;
     if (q.answered){
-      const ok = q.pick === q.entry;
-      fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
-      fb.textContent = ok ? `Correct: ${NAMES[q.entry]}.` : `Not quite. The correct entry is ${NAMES[q.entry]} (you chose ${NAMES[q.pick]}).`;
-      showResult(q.H, q.IC, q.s, q.entry, `Course to fix ${hd(q.H)} · Inbound ${hd(q.IC)} · ${q.s > 0 ? 'Right' : 'Left'} turns`);
+      fb.className = 'feedback ' + (q.ok ? 'ok' : 'bad');
+      fb.textContent = q.feedback;
+      showResult(q.H, q.IC, q.s, q.entry, `Course to fix ${hd(q.H)} · Inbound ${hd(q.IC)} · ${q.s > 0 ? 'Right' : 'Left'} turns`, q.checkHdg);
     } else {
       $('result').hidden = true;
     }
     $('next').hidden = !q.answered;
     drawScore();
   }
-  document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
-    if (!q || q.answered) return;
-    q.answered = true; q.pick = b.dataset.e;
+  function submit(){
+    if (!q || q.answered || !q.pick) return;
+    const entryOK = q.pick === q.entry;
+    const hdgOK = !q.checkHdg || Math.abs(mod(q.bug - q.hdgReq + 180, 360) - 180) <= 5;
+    q.ok = entryOK && hdgOK;
+    const name = NAMES[q.entry];
+    if (q.ok){
+      q.feedback = q.checkHdg ? `Correct: ${name}, entry heading ${hd(q.hdgReq)}.` : `Correct: ${name}.`;
+    } else {
+      const lines = [entryOK ? `Entry: ${name} is correct.` : `Entry: the correct entry is ${name} (you chose ${NAMES[q.pick]}).`];
+      if (q.checkHdg) lines.push(hdgOK ? `Heading: ${hd(q.hdgReq)} is correct.` : `Heading: should be ${hd(q.hdgReq)} (you set ${hd(q.bug)}).`);
+      q.feedback = lines.join('\n');
+    }
+    q.answered = true;
     stats.n++;
-    if (q.pick === q.entry){ stats.ok++; stats.streak++; } else { stats.streak = 0; }
+    if (q.ok){ stats.ok++; stats.streak++; } else { stats.streak = 0; }
     saveStats();
     renderQuiz();
     $('result').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
+    if (!q || q.answered) return;
+    q.pick = b.dataset.e;
+    if (q.checkHdg) renderQuiz(); else submit();
   }));
+  $('check').addEventListener('click', submit);
+  function setBug(v){ if (!q || q.answered) return; q.bug = normH(v); syncBug(); renderQuiz(); }
+  $('bugNum').addEventListener('input', e => {
+    const v = parseInt(e.target.value, 10);
+    if (isNaN(v) || !q || q.answered) return;
+    q.bug = normH(v); syncBug('num'); renderQuiz();
+  });
+  $('bugNum').addEventListener('change', () => syncBug());
+  $('bugRange').addEventListener('input', e => setBug(parseInt(e.target.value, 10)));
+  document.querySelectorAll('.bstep').forEach(b => b.addEventListener('click', () => setBug(q.bug + Number(b.dataset.d))));
+  $('optHdg').addEventListener('change', newQuestion);
   $('next').addEventListener('click', () => { newQuestion(); window.scrollTo({top:0, behavior:'smooth'}); });
   $('resetScore').addEventListener('click', () => { stats = {ok:0, n:0, streak:0}; saveStats(); drawScore(); });
 
@@ -439,9 +537,9 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.s) === own.s)));
   }
   function updateOwn(){
-    setHSI(own.H, own.IC, own.s);
     const entry = classify(own.H, own.IC, own.s);
-    showResult(own.H, own.IC, own.s, entry, `Course to fix ${hd(own.H)} · Inbound ${hd(own.IC)} · ${own.s > 0 ? 'Right' : 'Left'} turns`);
+    setHSI(own.H, own.IC, own.s, entryHdg(entry, own.IC, own.s), 'Entry heading');
+    showResult(own.H, own.IC, own.s, entry, `Course to fix ${hd(own.H)} · Inbound ${hd(own.IC)} · ${own.s > 0 ? 'Right' : 'Left'} turns`, true);
   }
   function bindField(numId, rangeId, key){
     $(numId).addEventListener('input', e => {
@@ -454,7 +552,7 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   }
   bindField('hNum', 'hRange', 'H');
   bindField('icNum', 'icRange', 'IC');
-  document.querySelectorAll('.step').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.step[data-t]').forEach(b => b.addEventListener('click', () => {
     own[b.dataset.t] = normH(own[b.dataset.t] + Number(b.dataset.d));
     syncInputs(); updateOwn();
   }));
