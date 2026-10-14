@@ -1,4 +1,4 @@
-const CACHE = 'holding-trainer-v3';
+const CACHE = 'holding-trainer-v4';
 const ASSETS = [
   './',
   './index.html',
