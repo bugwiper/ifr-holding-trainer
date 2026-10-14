@@ -5,8 +5,9 @@ A small web app for practising IFR holding entries. It runs entirely in the brow
 ## Features
 
 - **Quiz:** You get the course to the fix and the holding instructions (inbound course, turn direction) and pick the entry: direct, teardrop or parallel. After answering, the app shows a map with the sectors and the entry path, plus a short description of the procedure.
-- **Custom:** Set the course to the fix, the inbound course and the turn direction (right or left) yourself. Entry, instrument and map update live.
-- **Instrument:** A heading card with an integrated HSI. The course pointer is set to the inbound course, the deviation bar moves according to your position relative to the inbound line (5° per dot, 10° full scale), plus a TO/FROM indicator.
+- **Check for entry heading (optional):** Tick the checkbox below the quiz to also set a heading bug to the first heading you would fly after crossing the fix. Select the entry, set the bug (±5° tolerance) and tap **Check answer**. Both parts count towards the score, and the feedback tells you which one was wrong.
+- **Custom:** Set the course to the fix, the inbound course and the turn direction (right or left) yourself. Entry, instrument and map update live. The required entry heading after the fix is shown as a number, as a heading bug on the instrument and as an arrow on the map.
+- **Instrument:** A heading card with an integrated HSI. The course pointer is set to the inbound course, the deviation bar moves according to your position relative to the inbound line (5° per dot, 10° full scale), plus a TO/FROM indicator. Fixed white marks at ±90° from the nose make it easier to read relative courses.
 - **Score:** Correct answers and streak are stored locally in the browser.
 
 ## Entry logic
@@ -18,6 +19,8 @@ The app uses the standard sector layout with the 70° line through the fix. The 
 | Direct   | 180°   | Turn right at the fix onto the outbound heading and fly outbound |
 | Teardrop | 70°    | Turn onto a heading 30° off the outbound heading towards the holding side, fly 1 minute, then turn right and intercept the inbound course |
 | Parallel | 110°   | Turn onto the outbound heading, fly 1 minute, then turn left and intercept the inbound course from the holding side |
+
+The entry heading is the first heading flown after crossing the fix: the outbound heading (inbound course + 180°) for direct and parallel entries, and the outbound heading offset by 30° towards the holding side for teardrop entries.
 
 For left-hand holdings everything is mirrored. Wind and fix-passage details are not modelled.
 
@@ -68,7 +71,7 @@ Other Android browsers (Samsung Internet, Edge, Firefox) offer a similar **Add t
 
 ## Releasing updates
 
-After changing `index.html`, increase the version in `sw.js` (for example `holding-trainer-v2` to `holding-trainer-v3`). Otherwise devices keep serving the cached old version. You may need to open the app twice until the new version is active.
+After changing `index.html`, increase the version in `sw.js` (for example `holding-trainer-v3` to `holding-trainer-v4`). Otherwise devices keep serving the cached old version. You may need to open the app twice until the new version is active.
 
 ## Disclaimer
 
