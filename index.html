@@ -89,7 +89,6 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--c-parallel);out
 .choice.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--surface));}
 .choice.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface));}
 .choice[disabled]{cursor:default;}
-.choice.sel{border-color:var(--ink);}
 .feedback{margin:12px 0 0;font-weight:650;font-size:17px;white-space:pre-line;}
 .feedback.ok{color:var(--ok);} .feedback.bad{color:var(--bad);}
 .primary{appearance:none;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:650;font-size:16px;
@@ -191,12 +190,12 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   <section id="quiz" class="card">
     <p class="scenario" id="qText"></p>
     <div class="choices" id="choices">
-      <button class="choice" data-e="direct"><span class="sw direct"></span>Direct Entry</button>
-      <button class="choice" data-e="teardrop"><span class="sw teardrop"></span>Teardrop Entry</button>
-      <button class="choice" data-e="parallel"><span class="sw parallel"></span>Parallel Entry</button>
+      <button class="choice" data-e="direct"><span class="sw direct"></span><span class="ct">Direct Entry</span></button>
+      <button class="choice" data-e="teardrop"><span class="sw teardrop"></span><span class="ct">Teardrop Entry</span></button>
+      <button class="choice" data-e="parallel"><span class="sw parallel"></span><span class="ct">Parallel Entry</span></button>
     </div>
     <div class="field" id="bugField" hidden>
-      <label for="bugNum">Heading bug <span class="hint">first heading after the fix (±5°)</span></label>
+      <label for="bugNum">Heading bug <span class="hint">first heading after the fix (±5°), confirm by tapping an entry</span></label>
       <div class="inp">
         <button class="step bstep" data-d="-10" aria-label="10 degrees less">−10</button>
         <button class="step bstep" data-d="-1" aria-label="1 degree less">−1</button>
@@ -206,7 +205,6 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
       </div>
       <input id="bugRange" type="range" min="1" max="360" aria-label="Heading bug">
     </div>
-    <button class="primary" id="check" hidden>Check answer</button>
     <p class="feedback" id="feedback" hidden></p>
     <button class="primary" id="next" hidden>Next</button>
     <div class="opts">
@@ -467,7 +465,7 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     $('qText').textContent = `Course to fix: ${hd(q.H)}\nHolding instructions: inbound ${hd(q.IC)}, ${q.s > 0 ? 'right' : 'left'} turns`;
     document.querySelectorAll('.choice').forEach(b => {
       b.disabled = q.answered;
-      b.classList.toggle('sel', q.checkHdg && !q.answered && b.dataset.e === q.pick);
+      b.querySelector('.ct').textContent = NAMES[b.dataset.e] + (q.checkHdg ? ` with heading ${hd(q.bug)}` : '');
       b.classList.toggle('right', q.answered && b.dataset.e === q.entry);
       b.classList.toggle('wrong', q.answered && b.dataset.e === q.pick && q.pick !== q.entry);
     });
@@ -475,8 +473,6 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
     $('bugNum').disabled = q.answered;
     $('bugRange').disabled = q.answered;
     document.querySelectorAll('.bstep').forEach(b => b.disabled = q.answered);
-    $('check').hidden = !(q.checkHdg && !q.answered);
-    $('check').disabled = !q.pick;
     const fb = $('feedback');
     fb.hidden = !q.answered;
     if (q.answered){
@@ -512,9 +508,8 @@ input[type=range]{width:100%;margin:10px 0 0;accent-color:var(--ink);}
   document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
     if (!q || q.answered) return;
     q.pick = b.dataset.e;
-    if (q.checkHdg) renderQuiz(); else submit();
+    submit();
   }));
-  $('check').addEventListener('click', submit);
   function setBug(v){ if (!q || q.answered) return; q.bug = normH(v); syncBug(); renderQuiz(); }
   $('bugNum').addEventListener('input', e => {
     const v = parseInt(e.target.value, 10);
